@@ -6,13 +6,14 @@ export function stringifyPoints(points) {
 
 export function _stringifyPoint({ measurement, values, tags, timestamp }) {
   const tagsString = Object.keys(tags)
-    .reduce((accu, key) => accu + `,${key}=${tags[key]}`, '');
+    .map(key => `${key}=${tags[key]}`)
+    .join();
   
   const valuesString = Object.keys(values)
     .map(key => `${key}=${_formatValue(values[key])}`)
-    .join()
+    .join();
 
-  return `${measurement}${tagsString} ${valuesString} ${timestamp}`;
+  return `${measurement},${tagsString} ${valuesString} ${timestamp}`;
 }
 
 const _formatValue = (value) => {

@@ -1,4 +1,5 @@
 import { AsyncStorage } from 'react-native';
+import { log } from './telemetry';
 
 const POINTS_KEY = '@Telemetry:points';
 
@@ -30,5 +31,9 @@ export function clear() {
 
 function _save() {
   const points = JSON.stringify(memoryPointsCache);
-  AsyncStorage.setItem(POINTS_KEY, points);
+  AsyncStorage.setItem(POINTS_KEY, points)
+    .catch((error) => {
+      log('Telemetry - Failed to save points to cache with error: ' + error);
+      throw error;
+    });
 }

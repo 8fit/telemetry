@@ -2,6 +2,7 @@ import * as Cache from './pointCache';
 import { stringifyPoints } from './stringify'
 
 let config = null;
+export let log = () => {};
 
 /**
  * Configures Telemetry. Must be called before using any other Telemetry methods
@@ -13,9 +14,10 @@ let config = null;
 export function config(userConfig) {
   if (!userConfig) throw new Error('Must pass config object to Telemetry');
   if (!userConfig.influxUrl) throw new Error('Must pass a influxUrl config');
-
+  if (userConfig.log) log = userConfig.log;
   config = {
     sendInterval: 10, // Seconds
+    defaultTags: {},
     ...userConfig,
   };
 
@@ -38,7 +40,10 @@ export function point(measurement, values, tags) {
   Cache.addPoint(
     measurement,
     values,
-    tags,
+    { 
+      ...config.defaultTags, 
+      ...tags 
+    },
     timestamp,
   );
 }
@@ -63,12 +68,13 @@ export function flush() {
     body: stringifiedPoints,
   }
 
+  log(`Telemetry - Sending point(s):\n${stringifiedPoints}`)
+
   fetch(config.influxUrl, payload)
     .then(() => {
-      console.log('Worked!');
       Cache.deletePointsFromStart(pointsSentCount);
     })
     .catch((error) => {
-      console.log('Failed to send with error: ', error.message);
+      log('Telemetry - Failed to send points with error: ', error.message);
     });
 }
