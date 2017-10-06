@@ -2,9 +2,14 @@
 
 Telemetry is a super simple API for sending point metrics to [Influxdb](https://docs.influxdata.com/influxdb) in batches at a given time interval. It's just a simple wrapper for Influxdb's REST API. As points are created they're timestamped and cached on disk so you'll never lose a metric.
 
+### Installation
+```
+npm install react-native-telemetry --save
+```
+
 ### Usage
 ```
-import Telemetry from 'telemetry';
+import Telemetry from 'react-native-telemetry';
 
 // Configure Telemetry
 Telemetry.config({
