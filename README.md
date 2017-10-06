@@ -15,6 +15,8 @@ import Telemetry from 'react-native-telemetry';
 Telemetry.config({
   influxUrl: 'http://10.0.0.162:8086/write?db=testdb',
   sendInterval: 5, // Time window in seconds for batching events
+  defaultTags: { defaultTag1: 'some_value' },
+  log: (message) => console.log(message),
 });
 
 // Send a point
