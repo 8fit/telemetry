@@ -1,6 +1,10 @@
 import * as Cache from './pointCache';
 import { stringifyPoints } from './stringify'
 
+if (!global.atob) {
+  global.atob = require('base-64').decode;
+}
+
 let config = null;
 export let log = () => {};
 
