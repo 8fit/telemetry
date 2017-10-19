@@ -16,8 +16,9 @@ export function config(userConfig) {
   if (!userConfig.influxUrl) throw new Error('Must pass a influxUrl config');
   if (userConfig.log) log = userConfig.log;
   config = {
-    sendInterval: 10, // Seconds
+    sendInterval: 1, // Seconds
     defaultTags: {},
+    basicAuth: null,
     ...userConfig,
   };
 
@@ -36,13 +37,13 @@ export function point(measurement, values, tags) {
   if (!config) throw new Error('Telemetry - point called before config');
 
   const timestamp = Date.now() * 1000000;
-  
+
   Cache.addPoint(
     measurement,
     values,
-    { 
-      ...config.defaultTags, 
-      ...tags 
+    {
+      ...config.defaultTags,
+      ...tags
     },
     timestamp,
   );
@@ -61,15 +62,19 @@ export function flush() {
   }
 
   const pointsSentCount = points.length;
-  const stringifiedPoints = stringifyPoints(points); 
+  const stringifiedPoints = stringifyPoints(points);
+  const headers = new Headers();
+  if (config.basicAuth) {
+    headers.append('Authorization', 'Basic ' + btoa(config.basicAuth));
+  }
 
   const payload = {
     method: 'POST',
     body: stringifiedPoints,
+    headers,
   }
 
   log(`Telemetry - Sending point(s):\n${stringifiedPoints}`)
-
   fetch(config.influxUrl, payload)
     .then(() => {
       Cache.deletePointsFromStart(pointsSentCount);
