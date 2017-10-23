@@ -1,8 +1,8 @@
 import * as Cache from './pointCache';
 import { stringifyPoints } from './stringify'
 
-if (!global.atob) {
-  global.atob = require('base-64').decode;
+if (!global.btoa) {
+  global.btoa = require('base-64').encode;
 }
 
 let config = null;
