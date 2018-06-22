@@ -27,8 +27,12 @@ const _formatValue = value => {
   return value;
 };
 
-const escapeTag = value =>
-  value
-    .replace(",", "\\,")
-    .replace(" ", "\\ ")
-    .replace("=", "\\=");
+const escapeTag = value => {
+  if (typeof value === "string") {
+    return value
+      .replace(",", "\\,")
+      .replace(" ", "\\ ")
+      .replace("=", "\\=");
+  }
+  return value;
+};
