@@ -1,11 +1,11 @@
-import * as Cache from './pointCache';
-import { stringifyPoints } from './stringify'
+import * as Cache from "./pointCache";
+import { stringifyPoints } from "./stringify";
 
 if (!global.btoa) {
-  global.btoa = require('base-64').encode;
+  global.btoa = require("base-64").encode;
 }
 
-let config = null;
+let localConfig = null;
 export let log = () => {};
 
 /**
@@ -16,19 +16,19 @@ export let log = () => {};
   }
  */
 export function config(userConfig) {
-  if (!userConfig) throw new Error('Must pass config object to Telemetry');
-  if (!userConfig.influxUrl) throw new Error('Must pass a influxUrl config');
+  if (!userConfig) throw new Error("Must pass config object to Telemetry");
+  if (!userConfig.influxUrl) throw new Error("Must pass a influxUrl config");
   if (userConfig.log) log = userConfig.log;
-  config = {
+  localConfig = {
     sendInterval: 1, // Seconds
     defaultTags: {},
     basicAuth: null,
-    ...userConfig,
+    ...userConfig
   };
 
   setInterval(() => {
     flush();
-  }, config.sendInterval * 1000);
+  }, localConfig.sendInterval * 1000);
 }
 
 /**
@@ -38,7 +38,7 @@ export function config(userConfig) {
  * @param {Object} tags - { host: 'value1', cpu: 'value2' }
  */
 export function point(measurement, values, tags) {
-  if (!config) throw new Error('Telemetry - point called before config');
+  if (!localConfig) throw new Error("Telemetry - point called before config");
 
   const timestamp = Date.now() * 1000000;
 
@@ -46,10 +46,10 @@ export function point(measurement, values, tags) {
     measurement,
     values,
     {
-      ...config.defaultTags,
+      ...localConfig.defaultTags,
       ...tags
     },
-    timestamp,
+    timestamp
   );
 }
 
@@ -57,7 +57,7 @@ export function point(measurement, values, tags) {
  * Forces all cached points to be sent to Influxdb
  */
 export function flush() {
-  if (!config) throw new Error('Telemetry - flush called before config');
+  if (!localConfig) throw new Error("Telemetry - flush called before config");
 
   const points = Cache.points();
 
@@ -68,22 +68,22 @@ export function flush() {
   const pointsSentCount = points.length;
   const stringifiedPoints = stringifyPoints(points);
   const headers = new Headers();
-  if (config.basicAuth) {
-    headers.append('Authorization', 'Basic ' + btoa(config.basicAuth));
+  if (localConfig.basicAuth) {
+    headers.append("Authorization", "Basic " + btoa(localConfig.basicAuth));
   }
 
   const payload = {
-    method: 'POST',
+    method: "POST",
     body: stringifiedPoints,
-    headers,
-  }
+    headers
+  };
 
-  log(`Telemetry - Sending point(s):\n${stringifiedPoints}`)
-  fetch(config.influxUrl, payload)
+  log(`Telemetry - Sending point(s):\n${stringifiedPoints}`);
+  fetch(localConfig.influxUrl, payload)
     .then(() => {
       Cache.deletePointsFromStart(pointsSentCount);
     })
-    .catch((error) => {
-      log('Telemetry - Failed to send points with error: ', error.message);
+    .catch(error => {
+      log("Telemetry - Failed to send points with error: ", error.message);
     });
 }
